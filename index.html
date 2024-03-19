@@ -424,7 +424,7 @@
         }
 
         const HijriDate = {}
-        HijriDate.monthsMap = { 'محرم': 1, 'صفر': 2, 'ربيع الأول': 3, 'ربيع الثاني': 4, 'جمادى الأولى': 5, 'جمادى الثانية': 6, 'رجب': 7, 'شعبان': 8, 'رمضان': 9, 'شوال': 10, 'ذو القعدة': 11, 'ذو الحجة': 12 };
+        HijriDate.monthsMap = { 'محرم': 1, 'صفر': 2, 'ربيع الأول': 3, 'ربيع الآخر': 4, 'جمادى الأولى': 5, 'جمادى الآخرة': 6, 'رجب': 7, 'شعبان': 8, 'رمضان': 9, 'شوال': 10, 'ذو القعدة': 11, 'ذو الحجة': 12 };
         HijriDate.monthsEnglish = ['Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani',
             'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', "Sha'ban", 'Ramadan',
             'Shawwal', "Dhu al-Qi'dah", 'Dhu al-Hijjah'],
@@ -440,7 +440,13 @@
                 }).format(dateObject);
 
                 // Parse the Hijri date string
-                const [day, month, year] = hijriDateString.split(' ');
+                let [day, month, year] = [0,0,0]
+                if (hijriDateString.split(' ').length === 5){
+                    [day, monthA,monthB, year] = hijriDateString.split(' ');
+                    month = `${monthA} ${monthB}`;
+                } else {
+                    [day, month, year] = hijriDateString.split(' ');
+                }
 
                 const monthNumeric = HijriDate.monthsMap[month];
 
