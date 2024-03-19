@@ -9,7 +9,11 @@
     <link rel="icon" href="favicon.png">
     <title>95 Musalla Pray Times</title>
     <style>
-        body{
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
             position: absolute;
             box-sizing: border-box;
             display: flex;
@@ -17,10 +21,11 @@
             height: 95vh;
             justify-content: center;
         }
+
         table {
             width: 95%;
             border-collapse: collapse;
-            margin: 25px 0;
+            margin-top: 85px;
             font-size: 0.9em;
             font-family: sans-serif;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
@@ -47,9 +52,54 @@
             border-bottom: 2px solid #009879;
         }
     </style>
+    <style>
+        /* Container for the entire header */
+        #controller {
+            position: fixed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f0f0f066;
+            padding: 10px;
+            width: 90%;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        /* Style for the previous button */
+        #prev {
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Style for the date and h-date */
+        #date,
+        #h-date {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 10px;
+        }
+
+        /* Style for the next button */
+        #next {
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+    </style>
 </head>
 
 <body>
+    <div id="controller">
+        <div id="prev">◁</div>
+        <div>
+            <label for="dateInput">Select a date:</label>
+            <input type="date" id="dateInput">
+            <div id="date">h-date</div>
+            <div id="hijri-date">date</div>
+        </div>
+        <div id="next">▷</div>
+    </div>
     <table id="prayerTimesTable">
         <tr>
             <th>Prayer</th>
@@ -59,11 +109,101 @@
         <!-- Prayer times will be loaded here -->
     </table>
     <script>
+        /* do when document is loaded */
         window.addEventListener("DOMContentLoaded", () => {
+            /* display date object */
+            const displayDate = { value: new Date() };
+
+            /* show pray-times on load */
+            displayTimesForDate(displayDate.value);
+
+            /* update date-input */
+            document.querySelector('input[type="date"]').value = uniformDate(displayDate.value);
+
+            /* next button */
+            document.querySelector("#next").addEventListener("click", () => {
+                displayDate.value = addDaysToDate(displayDate.value, 1);
+                displayTimesForDate(displayDate.value);
+                document.querySelector('input[type="date"]').value = uniformDate(displayDate.value);
+            })
+
+            /* previous button */
+            document.querySelector("#prev").addEventListener("click", () => {
+                displayDate.value = addDaysToDate(displayDate.value, -1);
+                displayTimesForDate(displayDate.value);
+                document.querySelector('input[type="date"]').value = uniformDate(displayDate.value);
+            });
+
+            /* date-input */
+            document.querySelector('input[type="date"]').addEventListener("change",()=>{
+                let selectedDate = document.querySelector('input[type="date"]').value;
+                displayDate.value = new Date(selectedDate + "T00:00:00"); // Append "T00:00:00" to ensure local time
+                displayTimesForDate(displayDate.value);
+            })
+        });
+    </script>
+    <script>
+        function uniformDate(dateObject){
+            let newDate = dateObject || new Date;
+            let options = { year: 'numeric', month: '2-digit', day: '2-digit' }
+            return newDate.toLocaleDateString(undefined,options);
+        }
+        function clearTimesTable() {
+            // Get the table element
+            const table = document.getElementById("prayerTimesTable");
+
+            // Remove all rows except the first one (header row)
+            while (table.rows.length > 1) {
+                table.deleteRow(1); // Delete the row at index 1 (second row and onwards)
+            }
+        }
+        function displayTimesForDate(dateObject) {
+            clearTimesTable();
+            let displayDate = dateObject || new Date();
+            let time12h = true;
+            let dst = true;
+            let hijriOffsetDays = 0;
+            /* show in table */
+            prayTimes = getPrayTimes(displayDate, time12h, dst);
+            loadPrayerTimes(prayTimes);
+
+            /* show todays date */
+            let options = {};
+            // yyyy-mm-dd
+            /* options = { year: 'numeric', month: '2-digit', day: '2-digit' }; */
+            // dd-Month-yyyy
+            options = { day: '2-digit', month: 'short', year: 'numeric' };
+            let formattedDate = displayDate.toLocaleDateString(undefined, options);
+            document.querySelector("#date").innerHTML = formattedDate;
+
+            /* hijri-date */
+            let hdate = HijriDate.hijriDate(displayDate, hijriOffsetDays);
+            let formattedHDate = `${hdate.hday} ${HijriDate.monthsEnglish[hdate.hmonth - 1]} ${hdate.hyear}`;
+            document.querySelector("#hijri-date").innerHTML = formattedHDate;
+        }
+        function addDaysToDate(dateObject, days = 0) {
+            let newDate = new Date(dateObject);
+            newDate.setDate(newDate.getDate() + days);
+            return newDate;
+        }
+        // Function to load prayer times into the table
+        function loadPrayerTimes(prayTimes) {
+            const table = document.getElementById('prayerTimesTable');
+            Object.keys(prayTimes).forEach(prayer => {
+                let row = table.insertRow();
+                let cell1 = row.insertCell(0);
+                let cell2 = row.insertCell(1);
+                let cell3 = row.insertCell(2);
+                cell1.textContent = prayer.charAt(0).toUpperCase() + prayer.slice(1);
+                cell2.textContent = prayTimes[prayer][0];
+                cell3.textContent = prayTimes[prayer][1];
+            });
+        }
+        function getPrayTimes(dateObject, time12h = true, dst = true) {
             /**
              *  load todays pray-time from data
              */
-            const today = new Date();
+            const today = dateObject || new Date();
             const formattedDate = `${today.getMonth() + 1}`.padStart(2, '0') + '-' + `${today.getDate()}`.padStart(2, '0');
             let todayPrayTime;
             let todayPrayTimeDate;
@@ -75,7 +215,7 @@
                     break;
                 }
             }
-            
+
             /** 
              * get times form data string
              */
@@ -92,7 +232,7 @@
             isha = undefined
 
             /* apply dst */
-            if (isDaylightSavingTime()) {
+            if (isDaylightSavingTime() && dst) {
                 prayTimes = Object.fromEntries(
                     Object.entries(prayTimes).map(([key, value]) => [key, addMinutesTo24hStrTime_hh_mm(value, 60)])
                 );
@@ -110,27 +250,12 @@
             }
 
             /* convert to 12h */
-            prayTimes = Object.fromEntries(
-                Object.entries(prayTimes).map(([key, value]) => [key, [convertStr24hToStr12h_hh_mm(value[0]),convertStr24hToStr12h_hh_mm(value[1])]])
-            );
-
-            /* show in table */
-            loadPrayerTimes(prayTimes);
-        });
-    </script>
-    <script>
-        // Function to load prayer times into the table
-        function loadPrayerTimes(prayTimes) {
-            const table = document.getElementById('prayerTimesTable');
-            Object.keys(prayTimes).forEach(prayer => {
-                let row = table.insertRow();
-                let cell1 = row.insertCell(0);
-                let cell2 = row.insertCell(1);
-                let cell3 = row.insertCell(2);
-                cell1.textContent = prayer.charAt(0).toUpperCase() + prayer.slice(1);
-                cell2.textContent = prayTimes[prayer][0];
-                cell3.textContent = prayTimes[prayer][1];
-            });
+            if (time12h) {
+                prayTimes = Object.fromEntries(
+                    Object.entries(prayTimes).map(([key, value]) => [key, [convertStr24hToStr12h_hh_mm(value[0]), convertStr24hToStr12h_hh_mm(value[1])]])
+                );
+            }
+            return prayTimes;
         }
         function addMinutesTo24hStrTime_hh_mm(str24hTime, minutesToAdd) {
             const timeParts = str24hTime.split(':');
@@ -145,7 +270,7 @@
         }
 
         function convertStr24hToStr12h_hh_mm(srtTime24h) {
-            if (srtTime24h==""){
+            if (srtTime24h == "") {
                 return "";
             }
             const [hours, minutes] = srtTime24h.split(':').map(Number);
@@ -218,7 +343,38 @@
 
             return `${hh}:${mm}`;
         }
+        const HijriDate = {}
+        HijriDate.monthsMap = { 'محرم': 1, 'صفر': 2, 'ربيع الأول': 3, 'ربيع الثاني': 4, 'جمادى الأولى': 5, 'جمادى الثانية': 6, 'رجب': 7, 'شعبان': 8, 'رمضان': 9, 'شوال': 10, 'ذو القعدة': 11, 'ذو الحجة': 12 };
+        HijriDate.monthsEnglish = ['Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani',
+            'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', "Sha'ban", 'Ramadan',
+            'Shawwal', "Dhu al-Qi'dah", 'Dhu al-Hijjah'],
+            HijriDate.hijriDate = (dateObject, daysOffset = 0) => {
+                // apply offset in days
+                dateObject.setDate(dateObject.getDate() + daysOffset);
+
+                // Get the Hijri date formatted as a string
+                const hijriDateString = new Intl.DateTimeFormat('ar-TN-u-ca-islamic', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                }).format(dateObject);
+
+                // Parse the Hijri date string
+                const [day, month, year] = hijriDateString.split(' ');
+
+                const monthNumeric = HijriDate.monthsMap[month];
+
+                // Create an object with the extracted components
+                const hijriDateComponents = {
+                    hday: parseInt(day),
+                    hmonth: monthNumeric,
+                    hyear: parseInt(year)
+                };
+
+                return hijriDateComponents;
+            }
     </script>
+
     <script>
         /* times does not follow Daylight saving time (DST) */
         var JS_TIMES =
