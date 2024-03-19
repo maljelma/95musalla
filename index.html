@@ -89,9 +89,22 @@
 
         .current-pray-time,
         .current-pray-time>td {
-            background-color: #009398;
+            background-color: rgb(127, 18, 18);
             color: #fff;
         }
+
+        .next-pray-time,
+        .next-pray-time>td {
+            background-color: #059196;
+            color: #fff;
+        }
+
+        .next-pray-time-in-10,
+        .next-pray-time-in-10>td {
+            background-color: #357847;
+            color: #fff;
+        }
+
     </style>
 </head>
 
@@ -212,11 +225,12 @@
             let displayDate = dateObject || new Date();
             /* show current time */
             let _times = getPrayTimes(displayDate, false, true);
-            const currentTime = `${dateObject.getHours()}`.padStart(2, 0) + ":" + `${dateObject.getMinutes()}`.padStart(2, 0);
+            const currentTime = getTimeInHHMMFormat(dateObject);
             let index = 0;
+            let [adhan, iqama]=["00:00","00:00"]
             for (const time in _times) {
                 if (Object.hasOwnProperty.call(_times, time)) {
-                    let [adhan, iqama] = _times[time];
+                    [adhan, iqama] = _times[time];
                     if (iqama != "") {
                         iqama = addMinutesTo24hStrTime_hh_mm(iqama, stayAsCurrentTimeIntervalMin);
                     }
@@ -230,17 +244,71 @@
                 }
             }
 
-            if (index >= Object.keys(_times).length) { return }
-
             // Get the table element
             const table = document.getElementById("prayerTimesTable");
+            /* no current time */
+            if (index >= Object.keys(_times).length) { 
+                table.rows[0].classList.add("next-pray-time"); 
+                return
+            }
+
+            /* get row-element for index */
             // Iterate through the rows (skip the header row)
+            let currentTimeRow;
             for (let i = 1; i < table.rows.length; i++) {
+                let row = table.rows[i];
+                /* remove other time style */
+                row.classList.remove("current-pray-time");
+                row.classList.remove("next-pray-time-in-10");
+                row.classList.remove("next-pray-time");
                 if (i == index + 1) {
-                    const row = table.rows[i];
-                    row.classList.add("current-pray-time"); // Add the desired class
+                    currentTimeRow = row;
                 }
             }
+
+            let minimumTimeDifference=1440;
+            let minsToAdhan = getTimeDifferenceInMinutes(adhan,currentTime);
+            let minToIqama= getTimeDifferenceInMinutes(iqama,currentTime);
+            if (minsToAdhan > minToIqama){
+                minimumTimeDifference = minsToAdhan;
+            } else {
+                minimumTimeDifference = minToIqama;
+            }
+            /* set style-class for time is more than 10 min */
+            if (minimumTimeDifference >= 10 + stayAsCurrentTimeIntervalMin){
+                currentTimeRow.classList.add("next-pray-time");
+            }
+            /* set style-class for time is more than 0 */
+            if ((minimumTimeDifference >= 10 + stayAsCurrentTimeIntervalMin) && (minimumTimeDifference > 0 + stayAsCurrentTimeIntervalMin)){
+                currentTimeRow.classList.add("next-pray-time-in-10");
+            }
+            /* set style-class for time is 0 */
+            if (minimumTimeDifference <= 0 + stayAsCurrentTimeIntervalMin){
+                currentTimeRow.classList.add("current-pray-time");
+            }
+
+
+        }
+        function getTimeInHHMMFormat(dateObject){
+            dateObject = dateObject || new Date();
+            const formattedTime = `${dateObject.getHours()}`.padStart(2, 0) + ":" + `${dateObject.getMinutes()}`.padStart(2, 0);
+            return formattedTime;
+        }
+        function getTimeDifferenceInMinutes(timeA, timeB) {
+            /* return day in minutes when one of the given times is empty*/
+            if (timeA=="" ||timeB==""){return 1440;}
+            // Parse the input time strings into Date objects
+            const [hoursA, minutesA] = timeA.split(":").map(Number);
+            const [hoursB, minutesB] = timeB.split(":").map(Number);
+
+            // Calculate the total minutes for each time
+            const totalMinutesA = hoursA * 60 + minutesA;
+            const totalMinutesB = hoursB * 60 + minutesB;
+
+            // Calculate the absolute time difference in minutes
+            const timeDifferenceMinutes = Math.abs(totalMinutesA - totalMinutesB);
+
+            return timeDifferenceMinutes;
         }
         function uniformDate(dateObject) {
             let newDate = dateObject || new Date;
