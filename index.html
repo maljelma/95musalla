@@ -85,7 +85,11 @@
             font-size: 24px;
             cursor: pointer;
         }
-        
+
+        .current-pray-time {
+            background-color: #009398;
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -111,11 +115,17 @@
     <script>
         /* do when document is loaded */
         window.addEventListener("DOMContentLoaded", () => {
+            const displayOptions = {
+                time12h: true,
+                dst: true,
+                hijriOffsetDays: 0,
+                stayAsCurrentTimeIntervalMin: 10
+            }
             /* display date object */
             const displayDate = { value: new Date() };
 
             /* show pray-times on load */
-            displayTimesForDate(displayDate.value);
+            displayTimesForDate(displayDate.value, displayOptions);
 
             /* update date-input */
             document.querySelector('input[type="date"]').value = uniformDate(displayDate.value);
@@ -123,46 +133,37 @@
             /* next button */
             document.querySelector("#next").addEventListener("click", () => {
                 displayDate.value = addDaysToDate(displayDate.value, 1);
-                displayTimesForDate(displayDate.value);
+                displayTimesForDate(displayDate.value, displayOptions);
                 document.querySelector('input[type="date"]').value = uniformDate(displayDate.value);
-            })
+            });
 
             /* previous button */
             document.querySelector("#prev").addEventListener("click", () => {
                 displayDate.value = addDaysToDate(displayDate.value, -1);
-                displayTimesForDate(displayDate.value);
+                displayTimesForDate(displayDate.value, displayOptions);
                 document.querySelector('input[type="date"]').value = uniformDate(displayDate.value);
             });
 
             /* date-input */
-            document.querySelector('input[type="date"]').addEventListener("change",()=>{
+            document.querySelector('input[type="date"]').addEventListener("change", () => {
                 let selectedDate = document.querySelector('input[type="date"]').value;
                 displayDate.value = new Date(selectedDate + "T00:00:00"); // Append "T00:00:00" to ensure local time
-                displayTimesForDate(displayDate.value);
-            })
+                displayTimesForDate(displayDate.value, displayOptions);
+            });
         });
     </script>
     <script>
-        function uniformDate(dateObject){
-            let newDate = dateObject || new Date;
-            let options = { year: 'numeric', month: '2-digit', day: '2-digit' }
-            return newDate.toLocaleDateString(undefined,options);
-        }
-        function clearTimesTable() {
-            // Get the table element
-            const table = document.getElementById("prayerTimesTable");
-
-            // Remove all rows except the first one (header row)
-            while (table.rows.length > 1) {
-                table.deleteRow(1); // Delete the row at index 1 (second row and onwards)
-            }
-        }
-        function displayTimesForDate(dateObject) {
+        function displayTimesForDate(dateObject, kw) {
             clearTimesTable();
+            /**
+             * Display Settings
+             */
+            let { time12h, dst, hijriOffsetDays, stayAsCurrentTimeIntervalMin } = kw;
             let displayDate = dateObject || new Date();
-            let time12h = true;
-            let dst = true;
-            let hijriOffsetDays = 0;
+            time12h = time12h !== undefined ? time12h : true;
+            dst = dst !== undefined ? dst : true;
+            hijriOffsetDays = hijriOffsetDays !== undefined ? hijriOffsetDays : 0;
+            stayAsCurrentTimeIntervalMin = stayAsCurrentTimeIntervalMin !== undefined ? stayAsCurrentTimeIntervalMin : 10;
             /* show in table */
             prayTimes = getPrayTimes(displayDate, time12h, dst);
             loadPrayerTimes(prayTimes);
@@ -180,6 +181,69 @@
             let hdate = HijriDate.hijriDate(displayDate, hijriOffsetDays);
             let formattedHDate = `${hdate.hday} ${HijriDate.monthsEnglish[hdate.hmonth - 1]} ${hdate.hyear}`;
             document.querySelector("#hijri-date").innerHTML = formattedHDate;
+
+            if (isToday(displayDate)) {
+                showCurrentPrayTime(displayDate, stayAsCurrentTimeIntervalMin);
+            }
+        }
+        function isToday(date) {
+            const today = new Date();
+            return (
+                today.getFullYear() === date.getFullYear() &&
+                today.getMonth() === date.getMonth() &&
+                today.getDate() === date.getDate()
+            );
+        }
+        function showCurrentPrayTime(dateObject, stayAsCurrentTimeIntervalMin = 5) {
+            let displayDate = dateObject || new Date();
+            /* show current time */
+            let _times = getPrayTimes(displayDate, false, true);
+            const options = { hour: 'numeric', minute: 'numeric' };
+            const currentTime = displayDate.toLocaleTimeString('en-US', options);;
+            let index = 0;
+            for (const time in _times) {
+                if (Object.hasOwnProperty.call(_times, time)) {
+                    let [adhan, iqama] = _times[time];
+                    if (iqama != "") {
+                        iqama = addMinutesTo24hStrTime_hh_mm(iqama, stayAsCurrentTimeIntervalMin);
+                    }
+                    if (adhan != "") {
+                        adhan = addMinutesTo24hStrTime_hh_mm(adhan, stayAsCurrentTimeIntervalMin);
+                    }
+                    if ((iqama != "" && !str24hTimeIsLessThan_hh_mm(iqama, currentTime)) || (adhan != "" && !str24hTimeIsLessThan_hh_mm(adhan, currentTime))) {
+                        break;
+                    }
+                    index++;
+                }
+            }
+
+
+            // Get the table element
+            const table = document.getElementById("prayerTimesTable");
+            if (index < Object.keys(_times).length) {
+
+                // Iterate through the rows (skip the header row)
+                for (let i = 1; i < table.rows.length; i++) {
+                    if (i == index + 1) {
+                        const row = table.rows[i];
+                        row.classList.add("current-pray-time"); // Add the desired class
+                    }
+                }
+            }
+        }
+        function uniformDate(dateObject) {
+            let newDate = dateObject || new Date;
+            let options = { year: 'numeric', month: '2-digit', day: '2-digit' }
+            return newDate.toLocaleDateString(undefined, options);
+        }
+        function clearTimesTable() {
+            // Get the table element
+            const table = document.getElementById("prayerTimesTable");
+
+            // Remove all rows except the first one (header row)
+            while (table.rows.length > 1) {
+                table.deleteRow(1); // Delete the row at index 1 (second row and onwards)
+            }
         }
         function addDaysToDate(dateObject, days = 0) {
             let newDate = new Date(dateObject);
@@ -343,6 +407,22 @@
 
             return `${hh}:${mm}`;
         }
+
+        function str24hTimeIsLessThan_hh_mm(currentTimeString, givenTimeString) {
+            const currentTime = new Date();
+            const [currentHour, currentMinute] = currentTimeString.split(':').map(Number);
+
+            const givenTime = givenTimeString.split(':').map(Number);
+            const givenHour = givenTime[0];
+            const givenMinute = givenTime[1];
+
+            if (currentHour < givenHour || (currentHour === givenHour && currentMinute < givenMinute)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
         const HijriDate = {}
         HijriDate.monthsMap = { 'محرم': 1, 'صفر': 2, 'ربيع الأول': 3, 'ربيع الثاني': 4, 'جمادى الأولى': 5, 'جمادى الثانية': 6, 'رجب': 7, 'شعبان': 8, 'رمضان': 9, 'شوال': 10, 'ذو القعدة': 11, 'ذو الحجة': 12 };
         HijriDate.monthsEnglish = ['Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani',
