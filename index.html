@@ -275,11 +275,11 @@
                 minimumTimeDifference = minToIqama;
             }
             /* set style-class for time is more than 10 min */
-            if (minimumTimeDifference >= 10 + stayAsCurrentTimeIntervalMin){
+            if (minimumTimeDifference > 10 + stayAsCurrentTimeIntervalMin){
                 currentTimeRow.classList.add("next-pray-time");
             }
             /* set style-class for time is more than 0 */
-            if ((minimumTimeDifference >= 10 + stayAsCurrentTimeIntervalMin) && (minimumTimeDifference > 0 + stayAsCurrentTimeIntervalMin)){
+            if ((minimumTimeDifference <= 10 + stayAsCurrentTimeIntervalMin) && (minimumTimeDifference > 0 + stayAsCurrentTimeIntervalMin)){
                 currentTimeRow.classList.add("next-pray-time-in-10");
             }
             /* set style-class for time is 0 */
