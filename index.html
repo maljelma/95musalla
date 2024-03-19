@@ -198,8 +198,7 @@
             let displayDate = dateObject || new Date();
             /* show current time */
             let _times = getPrayTimes(displayDate, false, true);
-            const options = { hour: 'numeric', minute: 'numeric' };
-            const currentTime = displayDate.toLocaleTimeString('en-US', options);;
+            const currentTime = `${dateObject.getHours()}`.padStart(2,0)+":" + `${dateObject.getMinutes()}`.padStart(2,0);
             let index = 0;
             for (const time in _times) {
                 if (Object.hasOwnProperty.call(_times, time)) {
