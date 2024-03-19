@@ -88,7 +88,7 @@
         }
 
         .current-pray-time,
-        .current-pray-time > td {
+        .current-pray-time>td {
             background-color: #009398;
             color: #fff;
         }
@@ -125,6 +125,7 @@
             }
             /* display date object */
             const displayDate = { value: new Date() };
+            const frameCount = { value: 0, resetAt: 60 }
 
             /* show pray-times on load */
             displayTimesForDate(displayDate.value, displayOptions);
@@ -152,6 +153,17 @@
                 displayDate.value = new Date(selectedDate + "T00:00:00"); // Append "T00:00:00" to ensure local time
                 displayTimesForDate(displayDate.value, displayOptions);
             });
+
+            /* active update */
+            function refreshDisplay() {
+                frameCount.value++;
+                if (frameCount.value >= frameCount.resetAt) {
+                    displayTimesForDate(displayDate.value, displayOptions);
+                    frameCount.value = 0;
+                }
+                requestAnimationFrame(refreshDisplay);
+            }
+            requestAnimationFrame(refreshDisplay);
         });
     </script>
     <script>
@@ -200,7 +212,7 @@
             let displayDate = dateObject || new Date();
             /* show current time */
             let _times = getPrayTimes(displayDate, false, true);
-            const currentTime = `${dateObject.getHours()}`.padStart(2,0)+":" + `${dateObject.getMinutes()}`.padStart(2,0);
+            const currentTime = `${dateObject.getHours()}`.padStart(2, 0) + ":" + `${dateObject.getMinutes()}`.padStart(2, 0);
             let index = 0;
             for (const time in _times) {
                 if (Object.hasOwnProperty.call(_times, time)) {
@@ -218,16 +230,15 @@
                 }
             }
 
+            if (index >= Object.keys(_times).length) { return }
 
             // Get the table element
             const table = document.getElementById("prayerTimesTable");
-            if (index < Object.keys(_times).length) {
-                // Iterate through the rows (skip the header row)
-                for (let i = 1; i < table.rows.length; i++) {
-                    if (i == index + 1) {
-                        const row = table.rows[i];
-                        row.classList.add("current-pray-time"); // Add the desired class
-                    }
+            // Iterate through the rows (skip the header row)
+            for (let i = 1; i < table.rows.length; i++) {
+                if (i == index + 1) {
+                    const row = table.rows[i];
+                    row.classList.add("current-pray-time"); // Add the desired class
                 }
             }
         }
@@ -440,9 +451,9 @@
                 }).format(dateObject);
 
                 // Parse the Hijri date string
-                let [day, month, year] = [0,0,0]
-                if (hijriDateString.split(' ').length === 5){
-                    [day, monthA,monthB, year] = hijriDateString.split(' ');
+                let [day, month, year] = [0, 0, 0]
+                if (hijriDateString.split(' ').length === 5) {
+                    [day, monthA, monthB, year] = hijriDateString.split(' ');
                     month = `${monthA} ${monthB}`;
                 } else {
                     [day, month, year] = hijriDateString.split(' ');
