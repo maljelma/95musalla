@@ -64,6 +64,7 @@
             width: 90%;
             border-radius: 10px;
             text-align: center;
+            border: 1px solid lightblue;
         }
 
         /* Style for the previous button */
@@ -86,7 +87,8 @@
             cursor: pointer;
         }
 
-        .current-pray-time {
+        .current-pray-time,
+        .current-pray-time > td {
             background-color: #009398;
             color: #fff;
         }
@@ -209,7 +211,7 @@
                     if (adhan != "") {
                         adhan = addMinutesTo24hStrTime_hh_mm(adhan, stayAsCurrentTimeIntervalMin);
                     }
-                    if ((iqama != "" && !str24hTimeIsLessThan_hh_mm(iqama, currentTime)) || (adhan != "" && !str24hTimeIsLessThan_hh_mm(adhan, currentTime))) {
+                    if ((iqama !== "" && !str24hTimeIsLessThan_hh_mm(iqama, currentTime)) || (adhan !== "" && !str24hTimeIsLessThan_hh_mm(adhan, currentTime))) {
                         break;
                     }
                     index++;
@@ -220,7 +222,6 @@
             // Get the table element
             const table = document.getElementById("prayerTimesTable");
             if (index < Object.keys(_times).length) {
-
                 // Iterate through the rows (skip the header row)
                 for (let i = 1; i < table.rows.length; i++) {
                     if (i == index + 1) {
