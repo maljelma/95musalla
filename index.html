@@ -105,8 +105,14 @@
             color: #fff;
         }
 
-        .next-pray-time-in-0,
-        .next-pray-time-in-0>td {
+        .adhan-time,
+        .adhan-time>td {
+            background-color: #ffa500;
+            color: #fff;
+        }
+
+        .iqama-time,
+        .iqama-time>td {
             background-color: #9cca56;
             color: #fff;
         }
@@ -148,7 +154,7 @@
                 time12h: true,
                 dst: true,
                 hijriOffsetDays: 0,
-                stayAsCurrentTimeIntervalMin: 10
+                stayAsCurrentTimeInterval_min: 10
             }
             /* display date object */
             const displayDate = { value: new Date() };
@@ -191,6 +197,10 @@
                 requestAnimationFrame(refreshDisplay);
             }
             requestAnimationFrame(refreshDisplay);
+
+            /* run instead of refreshDisplay() for testing; time simulation */
+            /* Note: 24h time logic, 12h format is used for displayed values only */
+            // test();
         });
     </script>
     <script>
@@ -199,12 +209,12 @@
             /**
              * Display Settings
              */
-            let { time12h, dst, hijriOffsetDays, stayAsCurrentTimeIntervalMin } = kw;
+            let { time12h, dst, hijriOffsetDays, stayAsCurrentTimeInterval_min } = kw;
             let displayDate = dateObject || new Date();
             time12h = time12h !== undefined ? time12h : true;
             dst = dst !== undefined ? dst : true;
             hijriOffsetDays = hijriOffsetDays !== undefined ? hijriOffsetDays : 0;
-            stayAsCurrentTimeIntervalMin = stayAsCurrentTimeIntervalMin !== undefined ? stayAsCurrentTimeIntervalMin : 10;
+            stayAsCurrentTimeInterval_min = stayAsCurrentTimeInterval_min !== undefined ? stayAsCurrentTimeInterval_min : 10;
             /* show in table */
             prayTimes = getPrayTimes(displayDate, time12h, dst);
             loadPrayerTimes(prayTimes);
@@ -224,10 +234,10 @@
             document.querySelector("#hijri-date").innerHTML = formattedHDate;
 
             if (isToday(displayDate)) {
-                showCurrentPrayTime(displayDate, stayAsCurrentTimeIntervalMin);
+                showCurrentPrayTime(displayDate, stayAsCurrentTimeInterval_min);
             }
         }
-        function showCurrentPrayTime(dateObject, stayAsCurrentTimeIntervalMin = 5) {
+        function showCurrentPrayTime(dateObject, stayAsCurrentTimeInterval_min = 5) {
             let displayDate = dateObject || new Date();
             /* show current time */
             let _times = getPrayTimes(displayDate, false, true);
@@ -238,10 +248,10 @@
                 if (Object.hasOwnProperty.call(_times, time)) {
                     [adhan, iqama] = _times[time];
                     if (iqama != "") {
-                        iqama = addMinutesTo24hStrTime_hh_mm(iqama, stayAsCurrentTimeIntervalMin);
+                        iqama = addMinutesTo24hStrTime_hh_mm(iqama, stayAsCurrentTimeInterval_min);
                     }
                     if (adhan != "") {
-                        adhan = addMinutesTo24hStrTime_hh_mm(adhan, stayAsCurrentTimeIntervalMin);
+                        adhan = addMinutesTo24hStrTime_hh_mm(adhan, stayAsCurrentTimeInterval_min);
                     }
                     if ((iqama !== "" && !str24hTimeIsLessThan_hh_mm(iqama, currentTime)) || (adhan !== "" && !str24hTimeIsLessThan_hh_mm(adhan, currentTime))) {
                         break;
@@ -275,23 +285,23 @@
             }
 
             /* current pray time indicator style */
-            let minsToAdhan = getTimeDifferenceInMinutes(currentTime, adhan) + stayAsCurrentTimeIntervalMin;
-            let minToIqama = getTimeDifferenceInMinutes(currentTime, iqama) + stayAsCurrentTimeIntervalMin;
-            let minimumTimeDifference = {};
+            let minsToAdhan = getTimeDifferenceInMinutes(currentTime, adhan) + stayAsCurrentTimeInterval_min;
+            let minToIqama = getTimeDifferenceInMinutes(currentTime, iqama) + stayAsCurrentTimeInterval_min;
+            let prayTimeInterval = {};
             if (
                 (minsToAdhan > 0 && minToIqama >= -10)
                 || adhan == ""
-                || (minsToAdhan > stayAsCurrentTimeIntervalMin && minToIqama >= -10)) {
-                minimumTimeDifference.value = minToIqama;
-                minimumTimeDifference.type = 'iqama';
+                || (minsToAdhan > stayAsCurrentTimeInterval_min && minToIqama >= -10)) {
+                prayTimeInterval.value = minToIqama;
+                prayTimeInterval.type = 'iqama';
             }
             else {
-                minimumTimeDifference.value = minsToAdhan;
-                minimumTimeDifference.type = 'adhan';
+                prayTimeInterval.value = minsToAdhan;
+                prayTimeInterval.type = 'adhan';
             }
 
             /* set current-time class-name */
-            let currentTimeClassName = getCurrentTimeClassName(minimumTimeDifference.value, minimumTimeDifference.type);
+            let currentTimeClassName = getCurrentTimeClassName(prayTimeInterval.value, prayTimeInterval.type);
             currentTimeRow.classList.add(currentTimeClassName);
         }
         function getCurrentTimeClassName(currentTimeInterval, _type = "adhan") {
@@ -301,17 +311,20 @@
                 if (currentTimeInterval >= -10 && currentTimeInterval < 0 && _type == 'iqama') {
                     return "next-pray-time-in-10";
                 } else
-                    if (currentTimeInterval == 0) {
-                        return "next-pray-time-in-0";
+                    if (currentTimeInterval == 0 && _type == 'adhan') {
+                        return "adhan-time";
                     } else
-                        if (currentTimeInterval > 0 && _type == "iqama") {
-                            return "after-iqama-pray-time"
+                        if (currentTimeInterval == 0 && _type == 'iqama') {
+                            return "iqama-time";
                         } else
-                            if (currentTimeInterval > 0 && _type == "adhan") {
-                                return "after-adhan-pray-time"
-                            } else {
-                                return "next-pray-time";
-                            }
+                            if (currentTimeInterval > 0 && _type == "iqama") {
+                                return "after-iqama-pray-time"
+                            } else
+                                if (currentTimeInterval > 0 && _type == "adhan") {
+                                    return "after-adhan-pray-time"
+                                } else {
+                                    return "next-pray-time";
+                                }
         }
         function isToday(date) {
             const today = new Date();
@@ -609,7 +622,7 @@
                 time12h: true,
                 dst: true,
                 hijriOffsetDays: 0,
-                stayAsCurrentTimeIntervalMin: 10
+                stayAsCurrentTimeInterval_min: 10
             }
             //let _currentTime = "20:30";
             let _currentTime = "16:40";
