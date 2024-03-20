@@ -5,20 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    
+
     <style>
-        *{
+        * {
             box-sizing: border-box;
         }
-        body{
+
+        body {
             padding: 0;
             margin: 0;
             text-align: center;
         }
+
         .tableFixHead {
             overflow-y: auto;
             /* table init height */
-            height: 100vh; 
+            height: 100vh;
         }
 
         .tableFixHead thead th {
@@ -46,10 +48,14 @@
             text-wrap: nowrap;
         }
 
-        .month-header{
+        .month-header {
             background-color: lightgrey;
             border-bottom: 2px solid darkred;
             border-top: 2px solid darkred;
+        }
+
+        .todays-row {
+            background-color: blue;
         }
     </style>
 </head>
@@ -72,7 +78,7 @@
             <tbody>
                 <!-- Prayer times will be loaded here -->
             </tbody>
-            
+
         </table>
     </div>
     <script>
@@ -144,12 +150,21 @@
     </script>
     <script src="./data.js"></script>
     <script>
+        let todaysRow = {};
+        const today = new Date();
+        const formattedDate = `${today.getMonth() + 1}`.padStart(2, '0') + '-' + `${today.getDate()}`.padStart(2, '0');
         const table = document.getElementById('prayerTimesTable');
+        let index=-1;
         JS_TIMES.forEach(time => {
+            index++;
             time = time.replace("~~~~~", "|");
             let times = time.split("|")
             let row = table.insertRow();
             if (times.length > 1) {
+                if (times[0] == formattedDate) {
+                    todaysRow.value = row;
+                    todaysRow.index = index;
+                }
                 /* create hijri-date object */
                 for (let i = 0; i < times.length; i++) {
                     if (i) {
@@ -175,6 +190,10 @@
                 cell.className = "month-header";
             }
         });
+        todaysRow.value.className = "todays-row";
+        // scrolls to todaysRow-1 because header is also a row.
+        const targetRow = table.rows[todaysRow.index] 
+        targetRow.scrollIntoView();
     </script>
 </body>
 
