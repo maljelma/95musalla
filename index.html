@@ -54,7 +54,8 @@
     </style>
     <style>
         /* Container for the entire header */
-        #controller,.links {
+        #controller,
+        .links {
             position: fixed;
             display: flex;
             justify-content: space-between;
@@ -66,7 +67,8 @@
             text-align: center;
             border: 1px solid lightblue;
         }
-        .links{
+
+        .links {
             bottom: 10px;
             justify-content: center;
         }
@@ -127,7 +129,7 @@
             color: #fff;
         }
 
-        .data-link{
+        .data-link {
             text-decoration: none;
             border-radius: 4px;
             width: 40px;
@@ -164,7 +166,7 @@
     <div class="links">
         <a class="data-link" href="./data.html">[Calender]</a>
     </div>
-    
+
     <script>
         /* do when document is loaded */
         window.addEventListener("DOMContentLoaded", () => {
@@ -206,11 +208,13 @@
             });
             /* active update */
             function refreshDisplay() {
-                frameCount.value++;
-                if (frameCount.value >= frameCount.resetAt) {
-                    displayDate.value = new Date();
-                    displayTimesForDate(displayDate.value, displayOptions);
-                    frameCount.value = 0;
+                if (isToday(displayDate.value)) {
+                    frameCount.value++;
+                    if (frameCount.value >= frameCount.resetAt) {
+                        displayDate.value = new Date();
+                        displayTimesForDate(displayDate.value, displayOptions);
+                        frameCount.value = 0;
+                    }
                 }
                 requestAnimationFrame(refreshDisplay);
             }
