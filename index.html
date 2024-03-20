@@ -87,9 +87,15 @@
             cursor: pointer;
         }
 
-        .current-pray-time,
-        .current-pray-time>td {
+        .after-iqama-pray-time,
+        .after-iqama-pray-time>td {
             background-color: #7f1212;
+            color: #fff;
+        }
+
+        .after-adhan-pray-time,
+        .after-adhan-pray-time>td {
+            background-color: #57588e;
             color: #fff;
         }
 
@@ -99,12 +105,17 @@
             color: #fff;
         }
 
+        .next-pray-time-in-0,
+        .next-pray-time-in-0>td {
+            background-color: #9cca56;
+            color: #fff;
+        }
+
         .next-pray-time-in-10,
         .next-pray-time-in-10>td {
             background-color: #00008b;
             color: #fff;
         }
-
     </style>
 </head>
 
@@ -112,9 +123,12 @@
     <div id="controller">
         <div id="prev">◁</div>
         <div>
+            <!-- date-input -->
             <label for="dateInput">Select a date:</label>
             <input type="date" id="dateInput">
+            <!-- date -->
             <div id="date">h-date</div>
+            <!-- hijri-date -->
             <div id="hijri-date">date</div>
         </div>
         <div id="next">▷</div>
@@ -166,7 +180,6 @@
                 displayDate.value = new Date(selectedDate + "T00:00:00"); // Append "T00:00:00" to ensure local time
                 displayTimesForDate(displayDate.value, displayOptions);
             });
-
             /* active update */
             function refreshDisplay() {
                 frameCount.value++;
@@ -214,21 +227,13 @@
                 showCurrentPrayTime(displayDate, stayAsCurrentTimeIntervalMin);
             }
         }
-        function isToday(date) {
-            const today = new Date();
-            return (
-                today.getFullYear() === date.getFullYear() &&
-                today.getMonth() === date.getMonth() &&
-                today.getDate() === date.getDate()
-            );
-        }
         function showCurrentPrayTime(dateObject, stayAsCurrentTimeIntervalMin = 5) {
             let displayDate = dateObject || new Date();
             /* show current time */
             let _times = getPrayTimes(displayDate, false, true);
             const currentTime = getTimeInHHMMFormat(dateObject);
             let index = 0;
-            let [adhan, iqama]=["00:00","00:00"]
+            let [adhan, iqama] = ["00:00", "00:00"]
             for (const time in _times) {
                 if (Object.hasOwnProperty.call(_times, time)) {
                     [adhan, iqama] = _times[time];
@@ -248,8 +253,8 @@
             // Get the table element
             const table = document.getElementById("prayerTimesTable");
             /* no current time */
-            if (index >= Object.keys(_times).length) { 
-                table.rows[0].classList.add("next-pray-time"); 
+            if (index >= Object.keys(_times).length) {
+                table.rows[1].classList.add("next-pray-time");
                 return
             }
 
@@ -262,40 +267,68 @@
                 row.classList.remove("current-pray-time");
                 row.classList.remove("next-pray-time-in-10");
                 row.classList.remove("next-pray-time");
+                /* set current time row */
+                /* because i starts from 1, 1 is added to index */
                 if (i == index + 1) {
                     currentTimeRow = row;
                 }
             }
 
-            let minimumTimeDifference=1440;
-            let minsToAdhan = getTimeDifferenceInMinutes(adhan,currentTime);
-            let minToIqama= getTimeDifferenceInMinutes(iqama,currentTime);
-            if (minsToAdhan > minToIqama){
-                minimumTimeDifference = minsToAdhan;
-            } else {
-                minimumTimeDifference = minToIqama;
+            /* current pray time indicator style */
+            let minsToAdhan = getTimeDifferenceInMinutes(currentTime, adhan) + stayAsCurrentTimeIntervalMin;
+            let minToIqama = getTimeDifferenceInMinutes(currentTime, iqama) + stayAsCurrentTimeIntervalMin;
+            let minimumTimeDifference = {};
+            if (
+                (minsToAdhan > 0 && minToIqama >= -10)
+                || adhan == ""
+                || (minsToAdhan > stayAsCurrentTimeIntervalMin && minToIqama >= -10)) {
+                minimumTimeDifference.value = minToIqama;
+                minimumTimeDifference.type = 'iqama';
             }
-            /* set style-class for time is more than 10 min */
-            if (minimumTimeDifference > 10 + stayAsCurrentTimeIntervalMin){
-                currentTimeRow.classList.add("next-pray-time");
+            else {
+                minimumTimeDifference.value = minsToAdhan;
+                minimumTimeDifference.type = 'adhan';
             }
-            /* set style-class for time is more than 0 */
-            if ((minimumTimeDifference <= 10 + stayAsCurrentTimeIntervalMin) && (minimumTimeDifference > 0 + stayAsCurrentTimeIntervalMin)){
-                currentTimeRow.classList.add("next-pray-time-in-10");
-            }
-            /* set style-class for time is 0 */
-            if (minimumTimeDifference <= 0 + stayAsCurrentTimeIntervalMin){
-                currentTimeRow.classList.add("current-pray-time");
-            }
+
+            /* set current-time class-name */
+            let currentTimeClassName = getCurrentTimeClassName(minimumTimeDifference.value, minimumTimeDifference.type);
+            currentTimeRow.classList.add(currentTimeClassName);
         }
-        function getTimeInHHMMFormat(dateObject){
+        function getCurrentTimeClassName(currentTimeInterval, _type = "adhan") {
+            if (currentTimeInterval < -10) {
+                return "next-pray-time";
+            } else
+                if (currentTimeInterval >= -10 && currentTimeInterval < 0 && _type == 'iqama') {
+                    return "next-pray-time-in-10";
+                } else
+                    if (currentTimeInterval == 0) {
+                        return "next-pray-time-in-0";
+                    } else
+                        if (currentTimeInterval > 0 && _type == "iqama") {
+                            return "after-iqama-pray-time"
+                        } else
+                            if (currentTimeInterval > 0 && _type == "adhan") {
+                                return "after-adhan-pray-time"
+                            } else {
+                                return "next-pray-time";
+                            }
+        }
+        function isToday(date) {
+            const today = new Date();
+            return (
+                today.getFullYear() === date.getFullYear() &&
+                today.getMonth() === date.getMonth() &&
+                today.getDate() === date.getDate()
+            );
+        }
+        function getTimeInHHMMFormat(dateObject) {
             dateObject = dateObject || new Date();
             const formattedTime = `${dateObject.getHours()}`.padStart(2, 0) + ":" + `${dateObject.getMinutes()}`.padStart(2, 0);
             return formattedTime;
         }
-        function getTimeDifferenceInMinutes(timeA, timeB) {
+        function getTimeDifferenceInMinutes(timeA, timeB, abs = false) {
             /* return day in minutes when one of the given times is empty*/
-            if (timeA=="" ||timeB==""){return 1440;}
+            if (timeA == "" || timeB == "") { return -24 * 60; }
             // Parse the input time strings into Date objects
             const [hoursA, minutesA] = timeA.split(":").map(Number);
             const [hoursB, minutesB] = timeB.split(":").map(Number);
@@ -305,8 +338,10 @@
             const totalMinutesB = hoursB * 60 + minutesB;
 
             // Calculate the absolute time difference in minutes
-            const timeDifferenceMinutes = Math.abs(totalMinutesA - totalMinutesB);
-
+            let timeDifferenceMinutes = totalMinutesA - totalMinutesB;
+            if (abs) {
+                timeDifferenceMinutes = Math.abs(timeDifferenceMinutes);
+            }
             return timeDifferenceMinutes;
         }
         function uniformDate(dateObject) {
@@ -537,6 +572,60 @@
 
                 return hijriDateComponents;
             }
+        function incrementTime(timeStr) {
+            // Parse the input time string
+            const [hours, minutes] = timeStr.split(':').map(Number);
+
+            // Increment the minutes
+            let newMinutes = (minutes + 1) % 60;
+            let newHours = hours;
+
+            // If minutes wrap around to 0, increment hours
+            if (newMinutes === 0) {
+                newHours = (newHours + 1) % 24;
+            }
+
+            // Format the result as HH:MM
+            const formattedHours = String(newHours).padStart(2, '0');
+            const formattedMinutes = String(newMinutes).padStart(2, '0');
+            return `${formattedHours}:${formattedMinutes}`;
+        }
+        function parseTimeStringToTimeObject(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+
+            // Create a new Date object with the current date and the specified time
+            const currentDate = new Date();
+            const timeObject = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), hours, minutes);
+
+            return timeObject;
+        }
+
+    </script>
+
+    <script>
+        // use test display update
+        function test() {
+            const displayOptions = {
+                time12h: true,
+                dst: true,
+                hijriOffsetDays: 0,
+                stayAsCurrentTimeIntervalMin: 10
+            }
+            //let _currentTime = "20:30";
+            let _currentTime = "16:40";
+            let _frameCount = 0;
+            function testingDisplay() {
+                _frameCount++;
+                if (_frameCount >= 30) {
+                    _frameCount = 0;
+                    _currentTime = incrementTime(_currentTime);
+                    console.log(_currentTime)
+                    displayTimesForDate(parseTimeStringToTimeObject(_currentTime), displayOptions);
+                }
+                requestAnimationFrame(testingDisplay);
+            }
+            requestAnimationFrame(testingDisplay);
+        }
     </script>
 
     <script>
