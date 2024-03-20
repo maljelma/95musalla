@@ -171,6 +171,7 @@
             function refreshDisplay() {
                 frameCount.value++;
                 if (frameCount.value >= frameCount.resetAt) {
+                    displayDate.value = new Date();
                     displayTimesForDate(displayDate.value, displayOptions);
                     frameCount.value = 0;
                 }
@@ -286,8 +287,6 @@
             if (minimumTimeDifference <= 0 + stayAsCurrentTimeIntervalMin){
                 currentTimeRow.classList.add("current-pray-time");
             }
-
-
         }
         function getTimeInHHMMFormat(dateObject){
             dateObject = dateObject || new Date();
