@@ -1,5 +1,19 @@
-<!-- Mohammad Aljelmawi 2024-03-19 -->
-<!-- CA|Toronto|43.70011|-79.4163|-5.0 -->
+<!-- 95 musalla pray-time time-table -->
+<!-- favicon image is from :https://www.pinclipart.com/downpngs/iwixhh_vector-black-and-white-stock-islamic-mosque-dome/#google_vignette -->
+<!-- 
+    - this code was implemented by: Mohammad Aljelmawi on 2024-03-19 Toronto, ON CA
+    - code refactoring is not done yet - may have functions with repetitive logic.
+    - this code is provided as is with no grantee
+    - was created for 95 musalla site
+    - provided as all-in-one so it can be added as an embedded content to google sites
+    - limited testing have been done - no functions outcomes testing
+    - code drive active(always update); most be updated to process friendly logic(only when data values changed e.g current time)
+    - active running functionality is for current-time proposes; disabling it will not affect data-table
+    - data is loaded staticky form an embedded js-array
+    - information about collection of pray-time-data(excel sheet)  is provided where the data are embedded.
+    - if it was to be embedded as a site in a data frame(will make data editing simpler) structure change will be applied upon request.
+    - you can use the actual hosted site in an embedded frame as a link to page OR copy this document content and paste directly in google site as an embedded html script.
+ -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -683,7 +697,20 @@
     </script>
 
     <script>
-        /* times does not follow Daylight saving time (DST) */
+        /* Note observation: 
+            - times does not follow Daylight saving time (DST)
+            - so need to convert data on DST - i have applied automatic functionality logic for that 
+        */
+       /**
+        * data was collected by: Mohammad Aljelmawi 2024-03-19 
+        * i have used the following ags: CA|Toronto|43.70011|-79.4163|-5.0
+        * the generator link is: https://www.tawkit.net/wtimes/
+        * https://www.tawkit.net uses http://praytimes.org
+        * the source code for http://praytimes.org is provided here http://praytimes.org/code
+        * i also suggest using https://www.tawkit.net/ online as musalla's actual site(they provide a simple remote-admin service to control pray-times) - or embedded data frame.
+        * if an help is needed to refactor https://www.tawkit.net/ to used as data-frame ypu can let me know.
+        */
+
         var JS_TIMES =
             [
                 "-------------- JANUARY ----------------------------",
