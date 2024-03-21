@@ -12,5 +12,5 @@ live hosted on: https://maljelma.github.io/95musalla/
     - data is loaded staticky form an embedded js-array
     - information about collection of pray-time-data(excel sheet)  is provided where the data are embedded.
     - if it was to be embedded as a site in a data frame(will make data editing simpler) structure change will be applied upon request.
-    - you can use the actual hosted site in an embedded frame as a link to page OR copy this document content and paste directly in google site as an embedded html script.
+    - you can use the actual hosted site in an embedded frame as a link to page OR copy index.html document content and paste directly in google site as an embedded html script.
  -->
