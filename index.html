@@ -182,7 +182,11 @@
 </head>
 
 <body>
-
+    <script>
+        window.addEventListener("resize",()=>{
+            console.log(document.body.getClientRects())
+        })
+    </script>
     <div id="controller">
         <div id="prev">◁</div>
         <div>
