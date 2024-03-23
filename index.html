@@ -14,6 +14,9 @@
     - if it was to be embedded as a site in a data frame(will make data editing simpler) structure change will be applied upon request.
     - you can use the actual hosted site in an embedded frame as a link to page OR copy this document content and paste directly in google site as an embedded html script.
  -->
+ <!-- google sites embedded frame dimensions -->
+ <!-- h-view w:300 h:437 -->
+ <!-- v-view w:675 h:985 -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -27,7 +30,7 @@
             box-sizing: border-box;
         }
         /* phone devices on landscape mode - range selected/tested using ms-edge dev-mode dimensions views */
-        @media screen and (max-height: 450px) {
+        /* @media screen and (max-height: 450px) {
             body{
                 flex-direction:row;
             }
@@ -37,7 +40,6 @@
                 height: 540px;
                 width: 90vw;
                 z-index: -2;
-                /* background-color: #00008b; */
             }
             table{
                 position: absolute;
@@ -47,9 +49,7 @@
                 padding: 5px 10px;
                 font-size: smaller;
             }
-
-            
-        }
+        } */
 
         body {
             position: relative;
@@ -263,7 +263,7 @@
                 }
                 requestAnimationFrame(refreshDisplay);
             }
-            requestAnimationFrame(refreshDisplay);
+            /* requestAnimationFrame(refreshDisplay); */
 
             /* run instead of refreshDisplay() for testing; time simulation */
             /* Note: 24h time logic, 12h format is used for displayed values only */
