@@ -32,7 +32,7 @@
                 flex-direction:row;
             }
             .short-screen{
-                display: flex;
+                display: none;
                 position: absolute;
                 height: 540px;
                 width: 90vw;
@@ -43,6 +43,12 @@
                 position: absolute;
                 z-index: -1;
             }
+            table td,table th{
+                padding: 5px 10px;
+                font-size: smaller;
+            }
+
+            
         }
 
         body {
@@ -57,15 +63,15 @@
             width: 95%;
             border-collapse: collapse;
             margin-top: 85px;
-            margin-bottom: 45px;
-            font-size: 0.9em;
+            margin-bottom: 0px;
+            font-size: 1.0em;
             font-family: sans-serif;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
         }
 
         th,
         td {
-            padding: 12px 15px;
+            padding: 0px 15px;
             text-align: left;
             border-bottom: 1px solid #dddddd;
         }
@@ -112,6 +118,7 @@
             font-size: 18px;
             font-weight: bold;
             margin: 0 10px;
+            text-decoration: none;
         }
 
         /* Style for the next button */
@@ -155,9 +162,10 @@
             background-color: #00008b;
             color: #fff;
         }
-
         .links {
             bottom: 10px;
+            /* hide calender button */
+            display: none;
         }
 
         .data-link {
@@ -182,7 +190,7 @@
             <label for="dateInput">Select a date:</label>
             <input type="date" id="dateInput">
             <!-- date -->
-            <div id="date">h-date</div>
+            <div><a id="date" href="./data.html">h-date</a></div>
             <!-- hijri-date -->
             <div id="hijri-date">date</div>
         </div>
